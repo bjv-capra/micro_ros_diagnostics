@@ -35,14 +35,16 @@ MicroROSDiagnosticBridge::MicroROSDiagnosticBridge(const std::string & path)
   logger_(rclcpp::get_logger("MicroROSDiagnosticBridge"))
 {
   // Read lookup table
-  declare_parameter("lookup_table", rclcpp::ParameterValue(path));
+  declare_parameter("lookup_table", rclcpp::ParameterValue{path});
   std::string lookup_table_path = get_parameter("lookup_table").as_string();
   if (lookup_table_path.empty()) {
     throw std::invalid_argument("Need path to lookup table.");
   }
   read_lookup_table(lookup_table_path);
 
-  rclcpp::QoS qos{rclcpp::KeepLast{10}};
+  declare_parameter("qos_history", rclcpp::ParameterValue{10});
+  auto history = get_parameter("qos_history").as_int();
+  rclcpp::QoS qos{rclcpp::KeepLast{history}};
   qos.reliable();
 
   ros2_diagnostics_pub_ = create_publisher<DiagnosticArray>(
